@@ -22,8 +22,14 @@ router.post('/tasks', auth, async (req, res) => {
     }
 })
 
-// GET all
+// GET all /tasks?completed=true or /tasks?completed=false
+// GET /tasks?limit=10&skip=0
 router.get('/tasks', auth, async (req, res) => {
+    const match = {}
+
+    if (req.query.completed) {
+        match.completed = req.query.completed === 'true'
+    }
 
     try {
         // const tasks = await Task.find({})
@@ -31,10 +37,20 @@ router.get('/tasks', auth, async (req, res) => {
         // const user = await User.findById(req.user._id)
         // await user.populate('tasks').execPopulate()
 
-        await req.user.populate('tasks').execPopulate()
+        // here we are getting the user from the request,
+        // and using populate (mongoose thing) to get tasks that
+        // are connected to this user in particular
+        await req.user.populate({
+            path: 'tasks',
+            match,
+            options: {
+                limit: parseInt(req.query.limit),
+                skip: parseInt(req.query.skip)
+            }
+        }).execPopulate()
         res.send(req.user.tasks)
     } catch (e) {
-        res.status(500).send(e)
+        res.status(500).send()
     }
 })
 
