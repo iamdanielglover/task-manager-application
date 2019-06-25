@@ -24,15 +24,9 @@ router.post('/tasks', auth, async (req, res) => {
 
 // GET all /tasks?completed=true or /tasks?completed=false
 // GET /tasks?limit=10&skip=0
-router.get('/tasks', auth, async (req, res) => {
-    const match = {}
-
-    if (req.query.completed) {
-        match.completed = req.query.completed === 'true'
-    }
-
-    try {
-        // const tasks = await Task.find({})
+// GET /tasks?sortBy=createdAt:asc /tasks?sortBy=createdAt:desc
+   
+// (beginning at line 51) const tasks = await Task.find({})
         // res.send(tasks)
         // const user = await User.findById(req.user._id)
         // await user.populate('tasks').execPopulate()
@@ -40,12 +34,27 @@ router.get('/tasks', auth, async (req, res) => {
         // here we are getting the user from the request,
         // and using populate (mongoose thing) to get tasks that
         // are connected to this user in particular
+router.get('/tasks', auth, async (req, res) => {
+    const match = {}
+    const sort = {}
+
+    if (req.query.completed) {
+        match.completed = req.query.completed === 'true'
+    }
+
+    if (req.query.sortBy) {
+        const parts = req.query.sortBy.split(':')
+        sort[parts[0]] = parts[1] === 'desc' ? -1 : 1
+    }
+
+    try {
         await req.user.populate({
             path: 'tasks',
             match,
             options: {
                 limit: parseInt(req.query.limit),
-                skip: parseInt(req.query.skip)
+                skip: parseInt(req.query.skip),
+                sort
             }
         }).execPopulate()
         res.send(req.user.tasks)
