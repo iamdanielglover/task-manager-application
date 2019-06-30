@@ -35,7 +35,7 @@ test('Should add two numbers', (done) => {
 })
 
 test('Should add two numbers async/await', async () => {
-    const sum  = await add(1, 22)
+    const sum  = await add(10, 22)
     expect(sum).toBe(32)
 })
 // Why TEST?
