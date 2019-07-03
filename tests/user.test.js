@@ -1,7 +1,7 @@
 const request = require('supertest')
 const app = require('../src/app')
 const User = require('../src/models/user')
-const { userOneId, userOne, setupDatabase } = require('./fixtures/db')
+const { userOneId, userOne, userTwoId, userTwo, setupDatabase } = require('./fixtures/db')
 
 beforeEach(setupDatabase)
 
@@ -105,6 +105,59 @@ test('Should not update valid user fields', async () => {
         .set('Authorization', `Bearer ${userOne.tokens[0].token}`)
         .send({
             location: "Philadelphia"
+        })
+        .expect(400)
+})
+
+test('Should not update user if unauthenticated', async () => {
+    await request(app)
+        .patch('/users/me')
+        .send({
+            name: "Garry"
+        })
+        .expect(401)
+})
+
+test('Should not signup user with an email already in use', async () => {
+    await request(app)
+        .post('/users')
+        .send({
+            name: 'daniel glover',
+            email: userOne.email,
+            password: 'swordpass'
+        })
+        .expect(400)
+})
+
+test('Should not signup user with invalid email', async () => {
+    await request(app)
+        .post('/users')
+        .send({
+            name: 'daniel glover',
+            email: 'email',
+            password: 'swordpass'
+        })
+        .expect(400)
+})
+
+test('Should not signup user with invalid password', async () => {
+    await request(app)
+        .post('/users')
+        .send({
+            name: 'daniel glover',
+            email: 'john@email.com',
+            password: 'password'
+        })
+        .expect(400)
+})
+
+test('Should not signup user with invalid name', async () => {
+    await request(app)
+        .post('/users')
+        .send({
+            name: 1000,
+            email: 'john@email.com',
+            password: 'password'
         })
         .expect(400)
 })
